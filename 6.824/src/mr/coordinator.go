@@ -1,6 +1,9 @@
 package mr
 
-import "log"
+import (
+	"fmt"
+	"log"
+)
 import "net"
 import "os"
 import "net/rpc"
@@ -9,7 +12,18 @@ import "net/http"
 
 type Coordinator struct {
 	// Your definitions here.
+	state			int // init(0), running(1), finish(2)
+	mapTasks 		[]Task
+	reduceTasks 	[]Task
+	nReduce			int // reduce job num
+}
 
+type Task struct {
+	Id					int
+	State				int // init(0), running(1), finish(2)
+	InputFileName		string
+	OutputFileName		string
+	TaskType			int // map(0), reduce(1)
 }
 
 // Your code here -- RPC handlers for the worker to call.
@@ -37,6 +51,8 @@ func (c *Coordinator) server() {
 	l, e := net.Listen("unix", sockname)
 	if e != nil {
 		log.Fatal("listen error:", e)
+	} else {
+		log.Println("listen success")
 	}
 	go http.Serve(l, nil)
 }
@@ -63,7 +79,22 @@ func MakeCoordinator(files []string, nReduce int) *Coordinator {
 	c := Coordinator{}
 
 	// Your code here.
+	c.state = 0 // init
+	c.nReduce = nReduce
 
+	for i, fileName := range files {
+		fmt.Println(i, fileName)
+		task := Task {
+			Id: i,
+			State: 0,
+			InputFileName: fileName,
+			TaskType: 0,
+		}
+
+		c.mapTasks = append(c.mapTasks, task)
+	}
+
+	fmt.Println(c)
 
 	c.server()
 	return &c
