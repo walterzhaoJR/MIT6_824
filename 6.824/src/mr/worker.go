@@ -34,7 +34,9 @@ func Worker(mapf func(string, string) []KeyValue,
 	// Your worker implementation here.
 
 	// uncomment to send the Example RPC to the coordinator.
-	CallExample()
+	// CallExample()
+	task := CallGetTask(0)
+	fmt.Printf("work get map task:%v\n", task)
 }
 
 //
@@ -58,6 +60,25 @@ func CallExample() {
 
 	// reply.Y should be 100.
 	fmt.Printf("reply.Y %v\n", reply.Y)
+}
+
+func CallGetTask(taskType int) Task {
+	// TODO add argc check
+	args := GetTaskArgs{}
+	args.TaskType = taskType
+
+	reply := GetTaskReply{}
+
+	// send rpc
+	call("Coordinator.GetTask", &args, &reply)
+
+	task := Task{
+		Id: reply.Id,
+		TaskType: reply.TaskType,
+		InputFileName: reply.FileName,
+	}
+
+	return task
 }
 
 //
